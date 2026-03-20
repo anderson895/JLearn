@@ -3,7 +3,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { signOut } from "next-auth/react";
 import { useState } from "react";
 import {
   BookOpen, Search, Bell, ChevronDown, LayoutDashboard,
@@ -16,7 +15,7 @@ interface NavbarProps { session: any }
 
 const navLinks = [
   { href: "/courses",     label: "Browse Courses" },
-  { href: "/instructors", label: "Instructors" },
+  { href: "/instructor", label: "Instructors" },
 ];
 
 export default function Navbar({ session }: NavbarProps) {
@@ -25,6 +24,19 @@ export default function Navbar({ session }: NavbarProps) {
   const pathname = usePathname();
   const router   = useRouter();
   const { theme, setTheme } = useTheme();
+
+  async function handleSignOut() {
+    try {
+      await fetch("/api/auth/signout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ callbackUrl: "/" }),
+        redirect: "manual", // don't follow the 307 — we'll redirect manually
+      });
+    } catch {}
+    // Always redirect to home and do a hard reload to clear session state
+    window.location.href = "/";
+  }
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -116,7 +128,7 @@ export default function Navbar({ session }: NavbarProps) {
                       )}
                       <div className="h-px my-1" style={{ background: "var(--border)" }} />
                       <DropdownMenu.Item asChild>
-                        <button onClick={() => signOut({ callbackUrl: "/" })} className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm cursor-pointer" style={{ color: "#ef4444" }}>
+                        <button onClick={handleSignOut} className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm cursor-pointer" style={{ color: "#ef4444" }}>
                           <LogOut className="w-4 h-4" /> Sign Out
                         </button>
                       </DropdownMenu.Item>
