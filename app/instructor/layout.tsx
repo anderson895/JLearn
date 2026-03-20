@@ -20,7 +20,7 @@ export default async function InstructorLayout({ children }: { children: React.R
 
   return (
     <div className="min-h-screen flex" style={{ background: "var(--background)" }}>
-      <aside className="hidden lg:flex flex-col w-60 flex-shrink-0 border-r" style={{ background: "var(--surface-1)", borderColor: "var(--border)" }}>
+      <aside className="hidden lg:flex flex-col w-60 shrink-0 border-r" style={{ background: "var(--surface-1)", borderColor: "var(--border)" }}>
         <div className="p-5 border-b" style={{ borderColor: "var(--border)" }}>
           <Link href="/" className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg, var(--brand), var(--accent))" }}>

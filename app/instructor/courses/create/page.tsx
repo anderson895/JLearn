@@ -98,7 +98,7 @@ export default function CreateCoursePage() {
         <div className="flex gap-2 mb-8 overflow-x-auto pb-2">
           {steps.map((s, i) => (
             <button key={s} onClick={() => setStep(i)}
-              className="flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all"
+              className="shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all"
               style={{ background: i === step ? "var(--brand)" : i < step ? "var(--brand-light)" : "var(--surface-1)", color: i === step ? "#fff" : i < step ? "var(--brand)" : "var(--muted)", border: `1px solid ${i <= step ? "var(--brand)" : "var(--border)"}` }}>
               <span className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold"
                 style={{ background: i === step ? "rgba(255,255,255,0.2)" : "transparent" }}>{i + 1}</span>
@@ -188,7 +188,7 @@ export default function CreateCoursePage() {
                 <div className="space-y-2 mb-3">
                   {sections.map((s, i) => (
                     <div key={s.id} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
-                      <span className="text-xs font-medium w-16 flex-shrink-0" style={{ color: "var(--muted)" }}>Section {i + 1}</span>
+                      <span className="text-xs font-medium w-16 shrink-0" style={{ color: "var(--muted)" }}>Section {i + 1}</span>
                       <input value={s.title} onChange={e => setSections(prev => prev.map(x => x.id === s.id ? { ...x, title: e.target.value } : x))}
                         className="flex-1 bg-transparent text-sm font-medium outline-none" style={{ color: "var(--foreground)" }} />
                       {sections.length > 1 && (
