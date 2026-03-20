@@ -61,7 +61,7 @@ Open http://localhost:3000
 - Local webhooks: `stripe listen --forward-to localhost:3000/api/payments/webhook`
 
 ### Anthropic
-- https://console.anthropic.com → API Keys
+- https://console.groq.com → API Keys
 
 ## Project Structure
 
