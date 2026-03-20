@@ -2,18 +2,8 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { auth } from "@/lib/auth/auth";
-import { BookOpen, LayoutDashboard, GraduationCap, Award, BarChart2, MessageCircle, User, Settings, Zap, Bell } from "lucide-react";
+import { BookOpen, Zap, Bell } from "lucide-react";
 import DashboardNav from "@/components/dashboard/DashboardNav";
-
-const sidebarLinks = [
-  { href: "/dashboard",              icon: LayoutDashboard, label: "Overview" },
-  { href: "/dashboard/courses",      icon: GraduationCap,  label: "My Courses" },
-  { href: "/dashboard/certificates", icon: Award,          label: "Certificates" },
-  { href: "/dashboard/analytics",    icon: BarChart2,      label: "Analytics" },
-  { href: "/dashboard/ai-tutor",     icon: MessageCircle,  label: "AI Tutor" },
-  { href: "/dashboard/profile",      icon: User,           label: "Profile" },
-  { href: "/dashboard/settings",     icon: Settings,       label: "Settings" },
-];
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
@@ -43,7 +33,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         </div>
         {/* Nav */}
         <nav className="flex-1 p-3 space-y-0.5">
-          <DashboardNav links={sidebarLinks} />
+          <DashboardNav />
         </nav>
         {/* Instructor CTA */}
         {(session.user as any)?.role !== "instructor" && (

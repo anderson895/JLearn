@@ -2,15 +2,8 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { auth } from "@/lib/auth/auth";
-import { BookOpen, LayoutDashboard, Plus, BarChart2, Settings, Bell } from "lucide-react";
-import DashboardNav from "@/components/dashboard/DashboardNav";
-
-const links = [
-  { href: "/instructor",                icon: LayoutDashboard, label: "Overview" },
-  { href: "/instructor/courses/create", icon: Plus,            label: "New Course" },
-  { href: "/instructor/analytics",      icon: BarChart2,       label: "Analytics" },
-  { href: "/instructor/settings",       icon: Settings,        label: "Settings" },
-];
+import { BookOpen, LayoutDashboard, Plus, Bell } from "lucide-react";
+import InstructorNav from "@/components/dashboard/InstructorNav";
 
 export default async function InstructorLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
@@ -39,7 +32,7 @@ export default async function InstructorLayout({ children }: { children: React.R
           </div>
         </div>
         <nav className="flex-1 p-3 space-y-0.5">
-          <DashboardNav links={links} />
+          <InstructorNav />
         </nav>
         <div className="p-4 border-t" style={{ borderColor: "var(--border)" }}>
           <Link href="/dashboard" className="sidebar-item">
