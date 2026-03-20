@@ -32,7 +32,7 @@ export default function CreateCoursePage() {
   const [thumbnail, setThumbnail] = useState("");
   const [thumbFile, setThumbFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [sections,  setSections]  = useState([{ id: 1, title: "Introduction", lessons: [] }]);
+  const [sections,  setSections]  = useState([{ id: 1, title: "Introduction", order: 1, lessons: [] as any[] }]);
   const [outcomes,  setOutcomes]  = useState([""]);
   const [reqs,      setReqs]      = useState([""]);
 
@@ -58,17 +58,39 @@ export default function CreateCoursePage() {
     setSaving(true);
     try {
       let url = thumbnail;
-      if (thumbFile && !thumbnail.startsWith("https://res.cloudinary")) url = await uploadThumb(thumbFile);
-      if (!url) { toast.error("Upload a thumbnail first"); setSaving(false); return; }
+      if (thumbFile && !thumbnail.startsWith("https://res.cloudinary")) {
+        url = await uploadThumb(thumbFile);
+      }
       const { data: res } = await axios.post("/api/instructor/courses", {
-        ...data, thumbnail: url, sections,
-        outcomes: outcomes.filter(Boolean), requirements: reqs.filter(Boolean),
+        ...data,
+        thumbnail: url || "",
+        sections: sections.map(({ id, ...s }, i) => ({ ...s, order: i + 1 })),
+        outcomes: outcomes.filter(Boolean),
+        requirements: reqs.filter(Boolean),
       });
       toast.success("Course created!");
-      router.push(`/instructor/courses/${res.course.slug}`);
+      router.push(`/instructor`);
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Failed to create course");
     } finally { setSaving(false); }
+  }
+
+  // Show validation errors from any step when submit is clicked
+  function handleInvalidSubmit(errs: any) {
+    const stepFields: Record<number, string[]> = {
+      0: ["title", "shortDesc", "description"],
+      1: ["category", "level"],
+      3: ["price"],
+    };
+    for (const [s, fields] of Object.entries(stepFields)) {
+      if (fields.some(f => errs[f])) {
+        setStep(Number(s));
+        const firstMsg = fields.map(f => errs[f]?.message).find(Boolean);
+        toast.error(firstMsg || "Please fill in all required fields");
+        return;
+      }
+    }
+    toast.error("Please fill in all required fields");
   }
 
   const Field = ({ label, err, children }: { label: string; err?: string; children: React.ReactNode }) => (
@@ -107,7 +129,7 @@ export default function CreateCoursePage() {
           ))}
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={handleSubmit(onSubmit, handleInvalidSubmit)}>
           {/* Step 0: Basic */}
           {step === 0 && (
             <div className="space-y-5 animate-fade-in">
@@ -199,7 +221,7 @@ export default function CreateCoursePage() {
                     </div>
                   ))}
                 </div>
-                <button type="button" onClick={() => setSections(prev => [...prev, { id: Date.now(), title: "New Section", lessons: [] }])}
+                <button type="button" onClick={() => setSections(prev => [...prev, { id: Date.now(), title: "New Section", order: prev.length + 1, lessons: [] as any[] }])}
                   className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm transition-colors"
                   style={{ border: "2px dashed var(--border)", color: "var(--muted)" }}
                   onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "var(--brand)"; (e.currentTarget as HTMLElement).style.color = "var(--brand)"; }}

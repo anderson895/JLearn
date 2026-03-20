@@ -42,7 +42,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
               <Zap className="w-4 h-4 mb-2" style={{ color: "var(--brand)" }} />
               <p className="text-xs font-semibold mb-1" style={{ color: "var(--foreground)" }}>Become an Instructor</p>
               <p className="text-xs mb-3" style={{ color: "var(--muted)" }}>Share knowledge and earn.</p>
-              <Link href="/instructor/apply" className="btn-primary w-full text-xs" style={{ padding: "0.4rem 0.75rem" }}>Apply Now</Link>
+              <Link href="/become-instructor" className="btn-primary w-full text-xs" style={{ padding: "0.4rem 0.75rem" }}>Apply Now</Link>
             </div>
           </div>
         )}

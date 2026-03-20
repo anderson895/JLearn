@@ -112,15 +112,11 @@ export default async function InstructorPage() {
                 {/* Actions */}
                 <div className="flex items-center gap-1.5 flex-shrink-0">
                   <Link href={`/courses/${course.slug}`}
-                    className="p-2 rounded-lg transition-colors" style={{ color: "var(--muted)" }}
-                    onMouseEnter={(e: any) => { e.currentTarget.style.background = "var(--surface-2)"; }}
-                    onMouseLeave={(e: any) => { e.currentTarget.style.background = "transparent"; }}>
+                    className="p-2 rounded-lg transition-colors hover:bg-[--surface-2]" style={{ color: "var(--muted)" }}>
                     <Eye className="w-4 h-4" />
                   </Link>
                   <Link href={`/instructor/courses/${course.slug}`}
-                    className="p-2 rounded-lg transition-colors" style={{ color: "var(--muted)" }}
-                    onMouseEnter={(e: any) => { e.currentTarget.style.background = "var(--surface-2)"; }}
-                    onMouseLeave={(e: any) => { e.currentTarget.style.background = "transparent"; }}>
+                    className="p-2 rounded-lg transition-colors hover:bg-[--surface-2]" style={{ color: "var(--muted)" }}>
                     <Edit className="w-4 h-4" />
                   </Link>
                 </div>

@@ -274,9 +274,20 @@ async function handleGoogleCallback(req: NextRequest) {
       maxAge: SESSION_MAX_AGE,
     });
 
-    // 5. Set cookie and redirect
-    const dest     = callbackUrl.startsWith("http") ? callbackUrl : `${base}${callbackUrl}`;
-    const response = NextResponse.redirect(dest);
+    // 5. Set cookie and smart redirect based on role
+    // If user is instructor/admin → always go to studio regardless of callbackUrl
+    // If callbackUrl is still the generic /dashboard → override based on role too
+    const userRole = dbUser.role ?? "student";
+    let finalDest: string;
+    if (["instructor", "admin"].includes(userRole)) {
+      finalDest = `${base}/instructor`;
+    } else if (!callbackUrl || callbackUrl === "/" || callbackUrl === "/dashboard") {
+      finalDest = `${base}/dashboard`;
+    } else {
+      finalDest = callbackUrl.startsWith("http") ? callbackUrl : `${base}${callbackUrl}`;
+    }
+
+    const response = NextResponse.redirect(finalDest);
     setSessionCookie(response, jwtToken);
     return response;
 

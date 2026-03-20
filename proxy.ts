@@ -1,18 +1,33 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const protectedPrefixes  = ["/dashboard", "/learn", "/instructor", "/profile"];
-const instructorPrefixes = ["/instructor"];
+// Pages that require login but are open to any role
+const protectedPrefixes  = ["/dashboard", "/learn", "/profile"];
+
+// Pages that require login AND instructor/admin role
+// NOTE: /instructor/apply is intentionally excluded — any logged-in user can visit it
+const instructorPrefixes = ["/instructor/courses", "/instructor/analytics", "/instructor/settings"];
+const instructorRoots    = ["/instructor"]; // exact /instructor page (the studio overview)
+
 const adminPrefixes      = ["/admin"];
+
+// Public pages under /instructor that any logged-in user can access
+const instructorPublic   = ["/instructor/apply"];
 
 export default async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  const isProtected  = protectedPrefixes.some(p  => pathname.startsWith(p));
-  const isInstructor = instructorPrefixes.some(p => pathname.startsWith(p));
-  const isAdmin      = adminPrefixes.some(p      => pathname.startsWith(p));
+  // Allow /instructor/apply for any logged-in user
+  const isInstructorPublic = instructorPublic.some(p => pathname.startsWith(p));
 
-  if (isProtected || isInstructor || isAdmin) {
-    // Read the session token cookie (next-auth v5 uses this cookie name)
+  const isProtected  = protectedPrefixes.some(p  => pathname.startsWith(p))
+    || isInstructorPublic
+    || instructorPrefixes.some(p => pathname.startsWith(p))
+    || instructorRoots.some(p  => pathname === p || pathname.startsWith(p + "/") && !isInstructorPublic);
+  const isAdmin      = adminPrefixes.some(p => pathname.startsWith(p));
+
+  const needsLogin = isProtected || isAdmin;
+
+  if (needsLogin) {
     const sessionToken =
       req.cookies.get("authjs.session-token")?.value ||
       req.cookies.get("__Secure-authjs.session-token")?.value;

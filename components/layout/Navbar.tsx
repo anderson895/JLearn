@@ -14,8 +14,7 @@ import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 interface NavbarProps { session: any }
 
 const navLinks = [
-  { href: "/courses",     label: "Browse Courses" },
-  { href: "/instructor", label: "Instructors" },
+  { href: "/courses", label: "Browse Courses" },
 ];
 
 export default function Navbar({ session }: NavbarProps) {
@@ -24,6 +23,12 @@ export default function Navbar({ session }: NavbarProps) {
   const pathname = usePathname();
   const router   = useRouter();
   const { theme, setTheme } = useTheme();
+  const role = (session?.user as any)?.role;
+
+  // Context-aware instructor link
+  const instructorLink = ["instructor", "admin"].includes(role)
+    ? { href: "/instructor", label: "My Studio" }
+    : { href: "/become-instructor", label: "Teach on JLearn" };
 
   async function handleSignOut() {
     try {
@@ -71,6 +76,10 @@ export default function Navbar({ session }: NavbarProps) {
                 {link.label}
               </Link>
             ))}
+            <Link href={instructorLink.href} className="px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+              style={{ color: pathname?.startsWith(instructorLink.href) ? "var(--brand)" : "var(--muted)", background: pathname?.startsWith(instructorLink.href) ? "var(--brand-light)" : "transparent" }}>
+              {instructorLink.label}
+            </Link>
           </nav>
 
           <div className="ml-auto flex items-center gap-2">
@@ -160,6 +169,10 @@ export default function Navbar({ session }: NavbarProps) {
                 {link.label}
               </Link>
             ))}
+            <Link href={instructorLink.href} onClick={() => setMobileOpen(false)}
+              className="block px-4 py-2.5 rounded-xl text-sm font-medium" style={{ color: "var(--foreground)" }}>
+              {instructorLink.label}
+            </Link>
           </div>
         )}
       </div>
