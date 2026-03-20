@@ -114,7 +114,6 @@ const CourseSchema = new Schema<ICourse>(
   { timestamps: true }
 );
 
-CourseSchema.index({ slug: 1 });
 CourseSchema.index({ status: 1, category: 1 });
 CourseSchema.index({ title: "text", description: "text" });
 CourseSchema.index({ "stats.averageRating": -1, "stats.totalStudents": -1 });

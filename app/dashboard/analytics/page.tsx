@@ -10,7 +10,7 @@ async function getAnalytics(userId: string) {
   const [user, enrollments, progressList] = await Promise.all([
     User.findById(userId).lean() as any,
     Enrollment.find({ user: userId, status: "active" }).lean(),
-    Progress.find({ user: userId }).lean() as any[],
+    Progress.find({ user: userId }).lean() as unknown as any[],
   ]);
 
   const completedCourses = progressList.filter(p => p.percentComplete === 100).length;

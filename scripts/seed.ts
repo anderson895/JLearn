@@ -73,8 +73,8 @@ async function seed() {
   await mongoose.connect(URI);
   console.log("🔗 Connected to MongoDB");
 
-  const { default: User }   = await import("./models/User");
-  const { default: Course } = await import("./models/Course");
+  const { default: User }   = await import("../models/User");
+  const { default: Course } = await import("../models/Course");
 
   let instructor = await User.findOne({ email: "instructor@jlearn.com" });
   if (!instructor) {

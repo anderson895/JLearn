@@ -32,7 +32,7 @@ export default function LearnPage() {
   const [sidebar,  setSidebar]  = useState(true);
   const [tab,      setTab]      = useState<Tab>("content");
   const [played,   setPlayed]   = useState(0);
-  const saveTimer = useRef<ReturnType<typeof setTimeout>>();
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     async function load() {
