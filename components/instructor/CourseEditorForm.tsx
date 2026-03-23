@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -23,24 +23,102 @@ const schema = z.object({
 
 type Form = z.infer<typeof schema>;
 
+type SectionForm = {
+  id: number;
+  title: string;
+  order: number;
+  lessons: any[];
+};
+
+type CourseFormData = Form & {
+  thumbnail: string;
+  sections: SectionForm[];
+  outcomes: string[];
+  requirements: string[];
+};
+
+type Props = {
+  initialData?: Partial<CourseFormData>;
+  mode: "create" | "edit";
+  slug?: string;
+};
+
 const cats = ["Programming", "Web Development", "Data Science", "Machine Learning", "Design", "Business", "Photography", "Music", "Finance", "Health & Fitness"];
 const steps = ["Basic Info", "Details", "Curriculum", "Pricing"];
 
-export default function CreateCoursePage() {
+const defaultData: CourseFormData = {
+  title: "",
+  shortDesc: "",
+  description: "",
+  category: "",
+  level: "all-levels",
+  language: "English",
+  price: 0,
+  isFree: false,
+  thumbnail: "",
+  sections: [{ id: 1, title: "Introduction", order: 1, lessons: [] }],
+  outcomes: [""],
+  requirements: [""],
+};
+
+export default function CourseEditorForm({ initialData, mode, slug }: Props) {
   const router = useRouter();
+  const mergedData = useMemo(() => ({
+    ...defaultData,
+    ...initialData,
+    sections: initialData?.sections?.length
+      ? initialData.sections.map((section, index) => ({
+          id: Number(section.id ?? index + 1),
+          title: section.title || `Section ${index + 1}`,
+          order: section.order ?? index + 1,
+          lessons: section.lessons || [],
+        }))
+      : defaultData.sections,
+    outcomes: initialData?.outcomes?.length ? initialData.outcomes : defaultData.outcomes,
+    requirements: initialData?.requirements?.length ? initialData.requirements : defaultData.requirements,
+  }), [initialData]);
+
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
-  const [thumbnail, setThumbnail] = useState("");
+  const [thumbnail, setThumbnail] = useState(mergedData.thumbnail || "");
   const [thumbFile, setThumbFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [sections, setSections] = useState([{ id: 1, title: "Introduction", order: 1, lessons: [] as any[] }]);
-  const [outcomes, setOutcomes] = useState([""]);
-  const [reqs, setReqs] = useState([""]);
+  const [sections, setSections] = useState<SectionForm[]>(mergedData.sections);
+  const [outcomes, setOutcomes] = useState(mergedData.outcomes);
+  const [reqs, setReqs] = useState(mergedData.requirements);
 
-  const { register, handleSubmit, watch, formState: { errors } } = useForm<Form>({
+  const { register, handleSubmit, watch, reset, formState: { errors } } = useForm<Form>({
     resolver: zodResolver(schema),
-    defaultValues: { level: "all-levels", isFree: false, price: 0, language: "English" },
+    defaultValues: {
+      title: mergedData.title,
+      shortDesc: mergedData.shortDesc,
+      description: mergedData.description,
+      category: mergedData.category,
+      level: mergedData.level,
+      language: mergedData.language,
+      price: mergedData.price,
+      isFree: mergedData.isFree,
+    },
   });
+
+  useEffect(() => {
+    reset({
+      title: mergedData.title,
+      shortDesc: mergedData.shortDesc,
+      description: mergedData.description,
+      category: mergedData.category,
+      level: mergedData.level,
+      language: mergedData.language,
+      price: mergedData.price,
+      isFree: mergedData.isFree,
+    });
+    setThumbnail(mergedData.thumbnail || "");
+    setThumbFile(null);
+    setSections(mergedData.sections);
+    setOutcomes(mergedData.outcomes);
+    setReqs(mergedData.requirements);
+  }, [mergedData, reset]);
+
   const isFree = watch("isFree");
 
   async function uploadThumb(file: File) {
@@ -69,19 +147,39 @@ export default function CreateCoursePage() {
         imageUrl = await uploadThumb(thumbFile);
       }
 
-      await axios.post("/api/instructor/courses", {
+      const payload = {
         ...data,
         thumbnail: imageUrl || "",
         sections: sections.map(({ id, ...section }, index) => ({ ...section, order: index + 1 })),
         outcomes: outcomes.filter(Boolean),
         requirements: reqs.filter(Boolean),
-      });
+      };
 
-      toast.success("Course created!");
+      if (mode === "edit") {
+        if (!slug) {
+          toast.error("Course link is invalid.");
+          router.replace("/instructor");
+          return;
+        }
+
+        await axios.patch(`/api/courses/${slug}`, payload);
+        toast.success("Course updated!");
+      } else {
+        await axios.post("/api/instructor/courses", payload);
+        toast.success("Course created!");
+      }
+
       router.push("/instructor");
       router.refresh();
     } catch (err: any) {
-      toast.error(err.response?.data?.error || "Failed to create course");
+      const status = err.response?.status;
+      const message = err.response?.data?.error || `Failed to ${mode} course`;
+      if (mode === "edit" && status === 404) {
+        toast.error(message || "Course no longer exists.");
+        router.replace("/instructor");
+        return;
+      }
+      toast.error(message);
     } finally {
       setSaving(false);
     }
@@ -128,8 +226,10 @@ export default function CreateCoursePage() {
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="text-2xl font-bold" style={{ color: "var(--foreground)" }}>Create New Course</h1>
-            <p className="text-sm" style={{ color: "var(--muted)" }}>Fill in the details to publish your course</p>
+            <h1 className="text-2xl font-bold" style={{ color: "var(--foreground)" }}>{mode === "edit" ? "Edit Course" : "Create New Course"}</h1>
+            <p className="text-sm" style={{ color: "var(--muted)" }}>
+              {mode === "edit" ? "Update your course details and publish changes." : "Fill in the details to publish your course"}
+            </p>
           </div>
         </div>
 
@@ -217,16 +317,11 @@ export default function CreateCoursePage() {
                   <div className="space-y-2">
                     {arr.map((value: string, index: number) => (
                       <div key={index} className="flex gap-2">
-                        <input
-                          value={value}
-                          onChange={(e) => {
-                            const next = [...arr];
-                            next[index] = e.target.value;
-                            setArr(next);
-                          }}
-                          placeholder={placeholder}
-                          className="input-field flex-1"
-                        />
+                        <input value={value} onChange={(e) => {
+                          const next = [...arr];
+                          next[index] = e.target.value;
+                          setArr(next);
+                        }} placeholder={placeholder} className="input-field flex-1" />
                         {arr.length > 1 && <button type="button" onClick={() => setArr(arr.filter((_: any, itemIndex: number) => itemIndex !== index))} className="p-2 rounded-lg transition-colors" style={{ color: "#ef4444" }}><X className="w-4 h-4" /></button>}
                       </div>
                     ))}
@@ -258,7 +353,7 @@ export default function CreateCoursePage() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => setSections((prev) => [...prev, { id: Date.now(), title: "New Section", order: prev.length + 1, lessons: [] as any[] }])}
+                  onClick={() => setSections((prev) => [...prev, { id: Date.now(), title: "New Section", order: prev.length + 1, lessons: [] }])}
                   className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm transition-colors"
                   style={{ border: "2px dashed var(--border)", color: "var(--muted)" }}
                   onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "var(--brand)"; (e.currentTarget as HTMLElement).style.color = "var(--brand)"; }}
@@ -299,7 +394,7 @@ export default function CreateCoursePage() {
               <button type="button" onClick={() => setStep((current) => current + 1)} className="btn-primary">Continue</button>
             ) : (
               <button type="submit" disabled={saving} className="btn-primary">
-                {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving…</> : <><Save className="w-4 h-4" /> Create Course</>}
+                {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving…</> : <><Save className="w-4 h-4" /> {mode === "edit" ? "Update Course" : "Create Course"}</>}
               </button>
             )}
           </div>
